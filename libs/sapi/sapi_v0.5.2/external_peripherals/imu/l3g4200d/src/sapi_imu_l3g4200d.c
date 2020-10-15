@@ -1,6 +1,7 @@
 /* Copyright 2017 Bolder Flight Systems <brian.taylor@bolderflight.com>.
  * Copyright 2018, Sergio Renato De Jesus Melean <sergiordj@gmail.com>.
  * Copyright 2018, Eric Pernia.
+ * Copyright 2018, Sergio Alberino
  * All rights reserved.
  *
  * This file is part sAPI library for microcontrollers.
@@ -52,8 +53,6 @@ static int8_t l3g4200dReadRegisters( uint8_t subAddress, uint8_t count );
 static int8_t l3g4200dWhoAmI( void );
 static int8_t l3g4200dCalibrateGyro( void );
 static int8_t l3g4200dSetGyroRange( L3G4200D_GyroRange_t range );
-static int8_t l3g4200dSetDlpfBandwidth( L3G4200D_DlpfBandwidth_t bandwidth );
-static int8_t l3g4200dSetSrd( uint8_t srd );
 
 /*==================[internal data definition]===============================*/
 
@@ -155,10 +154,6 @@ static int8_t l3g4200dSetGyroRange( L3G4200D_GyroRange_t range )
 	switch(range) {
 		case L3G4200D_GYRO_RANGE_250DPS: {
 		  // setting the gyro range to 250DPS
-		  if(l3g4200dWriteRegister(L3G4200D_GYRO_CONFIG, L3G4200D_GYRO_FS_SEL_250DPS) < 0){
-			return -1;
-		  }
-        // setting the gyro scale to 250DPS
 		  control._gyroScale = 8.75f; // 8.75 mdps per digit for +/-250dps full scale using 16 bit digital output
 		  control._reg1bits = 0b00000000;
 
@@ -166,10 +161,6 @@ static int8_t l3g4200dSetGyroRange( L3G4200D_GyroRange_t range )
 		}
 		case L3G4200D_GYRO_RANGE_500DPS: {
 		  // setting the gyro range to 500DPS
-		  if(l3g4200dWriteRegister(L3G4200D_GYRO_CONFIG, L3G4200D_GYRO_FS_SEL_500DPS) < 0){
-			return -1;
-		  }
-        // setting the gyro scale to 500DPS
 		  control._gyroScale = 17.50f; // 17.50 mdps per digit for +/-500dps full scale using 16 bit digital output
 		  control._reg1bits = 0b00010000;
 
@@ -177,10 +168,6 @@ static int8_t l3g4200dSetGyroRange( L3G4200D_GyroRange_t range )
 		}
 		case L3G4200D_GYRO_RANGE_2000DPS: {
 		  // setting the gyro range to 2000DPS
-		  if(l3g4200dWriteRegister(L3G4200D_GYRO_CONFIG, L3G4200D_GYRO_FS_SEL_2000DPS) < 0){
-			return -1;
-		  }
-        // setting the gyro scale to 2000DPS
 		  control._gyroScale = 70.00f; // 70.00 mdps per digit for +/-2000dps full scale using 16 bit digital output
 		  control._reg1bits = 0b00100000;
 
@@ -209,29 +196,36 @@ int8_t l3g4200dInit( L3G4200D_address_t address )
 
 	//CTRL_REG2 = |0 |0 |HPM1|HPM0|HPCF3|HPCF2|HPCF1|HPCF0|
 	//Default =   |0 |0 |0   |0   |0    |0    |0    |0    |
-	l3g4200dWriteRegister(L3G4200D_CTRL_REG3, 0x00);
+	if (l3g4200dWriteRegister(L3G4200D_CTRL_REG3, 0x00) < 0) {
+		return -2;
+	}
 
 
 	//CTRL_REG3 = |I1_Int1|I1_Boot|H_Lactive|PP_OD|I2DRDY|I2_WTM|I2_ORun|I2_Empty|
 	//Default =   |0      |0      |0        |0    |0     |0     |0      |0       |
-	l3g4200dWriteRegister(L3G4200D_CTRL_REG3, 0x08);
+	if (l3g4200dWriteRegister(L3G4200D_CTRL_REG3, 0x08) < 0) {
+		return -3;
+	}
 
+	// Set Range 250DPS
+	l3g4200dSetGyroRange(L3G4200D_GYRO_RANGE_250DPS);
+	// Set bits for Reg1 to select Range
+	control._reg1bits= (L3G4200D_CTRL_REG4_INIT & 0b11001111) | control._reg1bits;
 
 	//CTRL_REG4 = |BDU|BLE|FS1|FS0| - |ST1|ST0|SIM|
 	//Default =   |0  |0  |0  |0  |0  |0  |0  |0  |
 	//BDU = 1 => Block Data Update
 	//BLE = 0 => Little endian
-	//FS = 00 => 250 dps (Full scale selection)
+	//FS = xx => scale selection
 	//ST = 000 => Disable Self test
 	// Reg4: set gyro  scale
-	l3g4200dWriteRegister(L3G4200D_CTRL_REG4, 0x8);
+	if (l3g4200dWriteRegister(L3G4200D_CTRL_REG4, control._reg1bits) < 0) {
+		return -4;
+	}
 
-
-	// Set Range 250DPS
-	l3g4200dSetGyroRange(L3G4200D_GYRO_RANGE_250DPS);
-	// Set bits for Reg1 to select Range
-	control._reg1bits= (L3G4200D_CTRL_REG1_INIT & 0b11001111) | control._reg1bits;
-
+	// Set ODR and cut-off
+	// L3G4200D_ODR_100_125
+	control._reg1bits= (L3G4200D_CTRL_REG1_INIT & 0b00001111) | L3G4200D_ODR_100_125 << 4;
 
 	//CTRL_REG1 = |DR1|DR0|BW1|BW0|PD|Zen|Yen|Xen|
 	//Default =   |0  |0  |0  |0  |0 |1  |1  |1  |
@@ -239,49 +233,28 @@ int8_t l3g4200dInit( L3G4200D_address_t address )
 	//BW => select Range
 	//PD = 1 => Normal
 	//Zen = Yen = Xen = 1 => Enable
-	l3g4200dWriteRegister(L3G4200D_CTRL_REG1, control._reg1bits);
-
+	if (l3g4200dWriteRegister(L3G4200D_CTRL_REG1, control._reg1bits) < 0) {
+		return -1;
+	}
 
 	//CTRL_REG5 = |BOOT|FIFO_EN| - |HPen|INT1_Sel1|INT1_Sel0|Out_Sel1|Out_Sel0|
 	//Default =   |0   |0      |0  |0   |0        |0        |0       |0       |
 	// Reg5: Disable FIFO
-	l3g4200dWriteRegister(L3G4200D_CTRL_REG5, 0x00);
-
+	if (l3g4200dWriteRegister(L3G4200D_CTRL_REG5, 0x00) < 0) {
+		return -5;
+	}
 
 	// check the WHO AM I byte, expected value is 0xD3
 	l3g4200dWhoAmI();
 	if (control._buffer[0] != WHO_RESPONSE_L3G4200D) {
 		printf("who am I?    (%i)   [Wrong answer]\r\n",
 		control._buffer[0]);
-		return -1;
+		return -6;
 		}
 
 	// successful init, return 1
 	return 1;
 }
-
-//	// setting bandwidth to 184Hz as default
-//	if (l3g4200dWriteRegister(L3G4200D_ACCEL_CONFIG2, L3G4200D_ACCEL_DLPF_184) < 0) {
-//		return -9;
-//	}
-//   // setting gyro bandwidth to 184Hz
-//	if (l3g4200dWriteRegister(L3G4200D_CONFIG, L3G4200D_GYRO_DLPF_184) < 0) {
-//		return -10;
-//	}
-//	control._bandwidth = L3G4200D_DLPF_BANDWIDTH_184HZ;
-//	// setting the sample rate divider to 0 as default
-//	if (l3g4200dWriteRegister(L3G4200D_SMPDIV, 0x00) < 0) {
-//		return -11;
-//	}
-//	control._srd = 0;
-//	// enable I2C master mode
-//	if (l3g4200dWriteRegister(L3G4200D_USER_CTRL, L3G4200D_I2C_MST_EN) < 0) {
-//		return -12;
-//	}
-//	// set the I2C bus speed to 400 kHz
-//	if (l3g4200dWriteRegister(L3G4200D_I2C_MST_CTRL, L3G4200D_I2C_MST_CLK) < 0) {
-//		return -13;
-//	}
 
 
 //Read sensor registers and store data at control structure
@@ -337,19 +310,19 @@ bool_t l3g4200dRead(void)
 }
 
 // Returns the gyroscope measurement in the x direction, rad/s
-float l3g4200dGetGyroX_rads( void )
+float l3g4200dGetGyroX_dps( void )
 {
 	return control._gx;
 }
 
 // Returns the gyroscope measurement in the y direction, rad/s
-float l3g4200dGetGyroY_rads( void )
+float l3g4200dGetGyroY_dps( void )
 {
 	return control._gy;
 }
 
 // Returns the gyroscope measurement in the z direction, rad/s
-float l3g4200dGetGyroZ_rads( void )
+float l3g4200dGetGyroZ_dps( void )
 {
 	return control._gz;
 }

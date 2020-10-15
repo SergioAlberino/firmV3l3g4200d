@@ -1,6 +1,7 @@
 /* Copyright 2017 Bolder Flight Systems <brian.taylor@bolderflight.com>.
  * Copyright 2018, Sergio Renato De Jesus Melean <sergiordj@gmail.com>.
  * Copyright 2018, Eric Pernia.
+ * Copyright 2018, Sergio Alberino
  * All rights reserved.
  *
  * This file is part sAPI library for microcontrollers.
@@ -82,68 +83,6 @@ extern "C" {
 #define L3G4200D_CTRL_REG1_INIT		0x8F	// Reg1 Enable Axis reading
 #define L3G4200D_CTRL_REG4_INIT		0x08	// Reg4 set gyro  scale
 
-
-
-
-// Registros heredados
-#define L3G4200D_GYRO_OUT              0x43
-#define L3G4200D_TEMP_OUT              0x41
-#define L3G4200D_EXT_SENS_DATA_00      0x49
-#define L3G4200D_ACCEL_CONFIG 	       0x1C
-#define L3G4200D_ACCEL_FS_SEL_2G       0x00
-#define L3G4200D_ACCEL_FS_SEL_4G       0x08
-#define L3G4200D_ACCEL_FS_SEL_8G       0x10
-#define L3G4200D_ACCEL_FS_SEL_16G      0x18
-#define L3G4200D_GYRO_CONFIG           0x1B
-#define L3G4200D_GYRO_FS_SEL_250DPS    0x00
-#define L3G4200D_GYRO_FS_SEL_500DPS    0x08
-#define L3G4200D_GYRO_FS_SEL_1000DPS   0x10
-#define L3G4200D_GYRO_FS_SEL_2000DPS   0x18
-#define L3G4200D_ACCEL_CONFIG2         0x1D
-#define L3G4200D_ACCEL_DLPF_184        0x01
-#define L3G4200D_ACCEL_DLPF_92         0x02
-#define L3G4200D_ACCEL_DLPF_41         0x03
-#define L3G4200D_ACCEL_DLPF_20         0x04
-#define L3G4200D_ACCEL_DLPF_10         0x05
-#define L3G4200D_ACCEL_DLPF_5          0x06
-#define L3G4200D_CONFIG                0x1A
-#define L3G4200D_GYRO_DLPF_184         0x01
-#define L3G4200D_GYRO_DLPF_92          0x02
-#define L3G4200D_GYRO_DLPF_41          0x03
-#define L3G4200D_GYRO_DLPF_20          0x04
-#define L3G4200D_GYRO_DLPF_10          0x05
-#define L3G4200D_GYRO_DLPF_5           0x06
-#define L3G4200D_SMPDIV                0x19
-#define L3G4200D_INT_PIN_CFG           0x37
-#define L3G4200D_INT_ENABLE            0x38
-#define L3G4200D_INT_DISABLE           0x00
-#define L3G4200D_INT_PULSE_50US        0x00
-#define L3G4200D_INT_WOM_EN            0x40
-#define L3G4200D_INT_RAW_RDY_EN        0x01
-#define L3G4200D_PWR_MGMNT_1           0x6B
-#define L3G4200D_PWR_CYCLE             0x20
-#define L3G4200D_PWR_RESET             0x80
-#define L3G4200D_CLOCK_SEL_PLL         0x01
-#define L3G4200D_PWR_MGMNT_2           0x6C
-#define L3G4200D_SEN_ENABLE            0x00
-#define L3G4200D_DIS_GYRO              0x07
-#define L3G4200D_USER_CTRL             0x6A
-
-#define L3G4200D_ACCEL_INTEL_EN        0x80
-#define L3G4200D_ACCEL_INTEL_MODE      0x40
-#define L3G4200D_LP_ACCEL_ODR          0x1E
-#define L3G4200D_WOM_THR               0x1F
-#define L3G4200D_WHO_AM_I              0x75
-#define L3G4200D_FIFO_EN               0x23
-#define L3G4200D_FIFO_TEMP             0x80
-#define L3G4200D_FIFO_GYRO             0x70
-#define L3G4200D_FIFO_ACCEL            0x08
-#define L3G4200D_FIFO_MAG              0x01
-#define L3G4200D_FIFO_COUNT            0x72
-#define L3G4200D_FIFO_READ             0x74
-
-
-
 // I2C baudrate
 #define L3G4200D_I2C_RATE              400000 // 400 kHz
 
@@ -158,14 +97,6 @@ typedef enum {
 
 typedef enum
 {
-   L3G4200D_ACCEL_RANGE_2G,
-   L3G4200D_ACCEL_RANGE_4G,
-   L3G4200D_ACCEL_RANGE_8G,
-   L3G4200D_ACCEL_RANGE_16G
-} L3G4200D_AccelRange_t;
-
-typedef enum
-{
    L3G4200D_GYRO_RANGE_250DPS,
    L3G4200D_GYRO_RANGE_500DPS,
    L3G4200D_GYRO_RANGE_1000DPS,
@@ -174,29 +105,23 @@ typedef enum
 
 typedef enum
 {
-   L3G4200D_DLPF_BANDWIDTH_184HZ,
-   L3G4200D_DLPF_BANDWIDTH_92HZ,
-   L3G4200D_DLPF_BANDWIDTH_41HZ,
-   L3G4200D_DLPF_BANDWIDTH_20HZ,
-   L3G4200D_DLPF_BANDWIDTH_10HZ,
-   L3G4200D_DLPF_BANDWIDTH_5HZ
-} L3G4200D_DlpfBandwidth_t;
-
-typedef enum
-{
-   L3G4200D_LP_ACCEL_ODR_0_24HZ  = 0,
-   L3G4200D_LP_ACCEL_ODR_0_49HZ  = 1,
-   L3G4200D_LP_ACCEL_ODR_0_98HZ  = 2,
-   L3G4200D_LP_ACCEL_ODR_1_95HZ  = 3,
-   L3G4200D_LP_ACCEL_ODR_3_91HZ  = 4,
-   L3G4200D_LP_ACCEL_ODR_7_81HZ  = 5,
-   L3G4200D_LP_ACCEL_ODR_15_63HZ = 6,
-   L3G4200D_LP_ACCEL_ODR_31_25HZ = 7,
-   L3G4200D_LP_ACCEL_ODR_62_50HZ = 8,
-   L3G4200D_LP_ACCEL_ODR_125HZ   = 9,
-   L3G4200D_LP_ACCEL_ODR_250HZ   = 10,
-   L3G4200D_LP_ACCEL_ODR_500HZ   = 11
-} L3G4200D_LpAccelOdr_t;
+	L3G4200D_ODR_100_125 = 0, // 100 Hz ODR, 12.5 Hz bandwidth
+	L3G4200D_ODR_100_25,
+	L3G4200D_ODR_100_25a,
+	L3G4200D_ODR_100_25b,
+	L3G4200D_ODR_200_125,
+	L3G4200D_ODR_200_25,
+	L3G4200D_ODR_200_50,
+	L3G4200D_ODR_200_70,
+	L3G4200D_ODR_400_20,
+	L3G4200D_ODR_400_25,
+	L3G4200D_ODR_400_50,
+	L3G4200D_ODR_400_110,
+	L3G4200D_ODR_800_30,
+	L3G4200D_ODR_800_35,
+	L3G4200D_ODR_800_50,
+	L3G4200D_ODR_800_110  // 800 Hz ODR, 110 Hz bandwidth
+} L3G4200D_ODR_t;
 
 //Control structure for L3G4200D operation (only one IMU per project)
 typedef struct {
@@ -233,8 +158,6 @@ typedef struct {
    // track success of interacting with sensor
    int8_t _reg1bits;
 
-   float aRes, gRes, mRes; // scale resolutions per LSB for the sensors
-
    // 16-bit signed gyro sensor output
    int16_t gyroCount[3];
 
@@ -248,17 +171,14 @@ int8_t l3g4200dInit( L3G4200D_address_t address );
 // Read sensor registers and store data at control structure
 bool_t l3g4200dRead(void);
 
-
-
-
 // Returns the gyroscope measurement in the x direction, rad/s
-float l3g4200dGetGyroX_rads( void );
+float l3g4200dGetGyroX_dps( void );
 
 // Returns the gyroscope measurement in the y direction, rad/s
-float l3g4200dGetGyroY_rads( void );
+float l3g4200dGetGyroY_dps( void );
 
 // Returns the gyroscope measurement in the z direction, rad/s
-float l3g4200dGetGyroZ_rads( void );
+float l3g4200dGetGyroZ_dps( void );
 
 
 /*==================[c++]====================================================*/

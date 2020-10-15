@@ -93,9 +93,8 @@ int main(void) {
 		// Imprimir resultados
 
 		printf("Giroscopo:      (%f, %f, %f)   [dps]\r\n",
-				l3g4200dGetGyroX_rads(), l3g4200dGetGyroY_rads(),
-				l3g4200dGetGyroZ_rads());
-
+				l3g4200dGetGyroX_dps(),  l3g4200dGetGyroY_dps(),
+				l3g4200dGetGyroZ_dps());
 
 		delay(1000);
 	}
