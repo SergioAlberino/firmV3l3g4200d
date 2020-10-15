@@ -229,7 +229,7 @@ int8_t l3g4200dInit( L3G4200D_address_t address )
 
 	//CTRL_REG1 = |DR1|DR0|BW1|BW0|PD|Zen|Yen|Xen|
 	//Default =   |0  |0  |0  |0  |0 |1  |1  |1  |
-    //DR => ODR (output data rate)
+	//DR => ODR (output data rate)
 	//BW => select Range
 	//PD = 1 => Normal
 	//Zen = Yen = Xen = 1 => Enable
